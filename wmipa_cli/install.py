@@ -68,3 +68,6 @@ def install_pysmt_nra(force_reinstall):
     logger.info(f"Installing PySMT with NRA support from {url}...")
     force_str = "--force-reinstall" if force_reinstall else ""
     safe_cmd(f"{sys.executable} -m pip install {url} {force_str}")
+
+if __name__ == "__main__":
+    run()
