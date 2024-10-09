@@ -17,6 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from wmipa import WMI
 from wmipa.integration import LatteIntegrator, VolestiIntegrator, SymbolicIntegrator
 from wmipa.integration.torch.wmipa.numerical_symb_integrator_pa import NumericalSymbIntegratorPA
+from wmipa.utils import is_pow
 
 import torch
 
@@ -26,6 +27,22 @@ WMIResult = namedtuple("WMIResult", ["wmi_id",
                                      "parallel_integration_time",
                                      "sequential_integration_time"])
 
+
+def compute_total_degree(node):
+
+    if node.is_constant():
+        return 0
+    elif node.is_symbol():
+        return 1
+    elif is_pow(node):
+        base, exponent = node.args()
+        return compute_total_degree(base) * int(exponent.constant_value())
+    elif node.is_ite():
+        return max([compute_total_degree(c) for c in node.args()[1:]])
+    elif node.is_plus():
+        return max([compute_total_degree(c) for c in node.args()])
+    elif node.is_times():
+        return sum([compute_total_degree(c) for c in node.args()])
 
 def get_wmi_id(mode, integrator):
     """Return a string identifying the pair <mode, integrator>."""
@@ -71,7 +88,8 @@ def compute_wmi(args, domain, support, weight):
     if "mlc" in args.input:
         args.total_degree = 1
     else:
-        raise Exception("Total degree not defined for this dataset")
+        args.total_degree = compute_total_degree(weight)
+    
     bool_vars = {v for v in domain if v.symbol_type().is_bool_type()}
     if args.mode in WMI.MODES:
         integrators = get_integrators(args)
@@ -167,3 +185,35 @@ def run_fn_with_timeout(fn, timeout, *args, **kwargs):
             # killed because of exceeding resources
             raise TimeoutError()
     return res
+
+
+if __name__ == '__main__':
+
+    from pysmt.shortcuts import *
+
+    w = Real(666)
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Symbol("x", REAL)
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Plus(Symbol("x", REAL), Real(666))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Plus(Symbol("x", REAL), Symbol("y", REAL))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Times(Symbol("x", REAL), Real(666))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Times(Symbol("x", REAL), Symbol("y", REAL))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Plus(Times(Symbol("x", REAL), Symbol("y", REAL)), Times(Symbol("x", REAL), Real(666)))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Pow(Times(Symbol("x", REAL), Symbol("y", REAL)), Real(666))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
+
+    w = Ite(LE(Real(3), Real(1)), Pow(Times(Symbol("x", REAL), Symbol("y", REAL)), Real(666)), Real(1337))
+    print(f"weight: {w} \t\t\t TD: {compute_total_degree(w)}")
