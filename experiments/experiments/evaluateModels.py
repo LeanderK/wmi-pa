@@ -33,12 +33,14 @@ def initialize_output_files(args, output_prefix, run_id, output_suffix):
         run_id (int): Run ID
         output_suffix (str): suffix of the output filename
 
-    Returns:
+    Returns:s
         A dictionary mapping each wmi_id (identifying a pair <mode, integrator>) to the corresponding output file
 
     """
 
     output_files = {}
+    args.total_degree = 1
+    args.variable_map = {"x":0}
     for integrator in get_integrators(args):
         wmi_id = get_wmi_id(args.mode, integrator)
         output_filename = get_output_filename(args.output, output_prefix, wmi_id, run_id, output_suffix)
@@ -88,6 +90,7 @@ def parse_args():
     latte_parser = integration_parsers.add_parser("latte", formatter_class=Formatter)
     symbolic_parser = integration_parsers.add_parser("symbolic", formatter_class=Formatter)
     volesti_parser = integration_parsers.add_parser("volesti", formatter_class=Formatter)
+    torch_parser = integration_parsers.add_parser("torch", formatter_class=Formatter)
     volesti_parser.add_argument("-e", "--error", default=0.1, type=float,
                                 help="Relative error for the volume computation [in (0, 1)]")
     volesti_parser.add_argument("--algorithm", choices=VolestiIntegrator.ALGORITHMS,

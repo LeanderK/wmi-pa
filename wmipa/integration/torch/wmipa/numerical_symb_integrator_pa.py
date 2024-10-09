@@ -161,3 +161,13 @@ class NumericalSymbIntegratorPA(Integrator):
             results.append(integral_polytope.item())
         # results = torch.concatenate(results, dim=-1)
         return results, 0
+
+    def to_short_str(self):
+        return "torch"
+
+    def to_json(self):
+        return {
+            "name": "torch",
+            "total_degree": self.total_degree,
+            "variable_map": self.variable_map,
+        }
