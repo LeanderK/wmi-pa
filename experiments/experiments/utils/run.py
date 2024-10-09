@@ -9,8 +9,16 @@ from pywmi import Domain as PywmiDomain, PyXaddEngine, XsddEngine, PyXaddAlgebra
 from pywmi.engines.algebraic_backend import SympyAlgebra
 from pywmi.engines.xsdd.vtrees.vtree import balanced
 
+# add to imports
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
 from wmipa import WMI
 from wmipa.integration import LatteIntegrator, VolestiIntegrator, SymbolicIntegrator
+from wmipa.integration.torch.wmipa.numerical_symb_integrator_pa import NumericalSymbIntegratorPA
+
+import torch
 
 WMIResult = namedtuple("WMIResult", ["wmi_id",
                                      "value",
@@ -31,6 +39,13 @@ def get_integrators(args):
         return [None]
     if args.integrator == "latte":
         return [LatteIntegrator(n_threads=args.n_threads, stub_integrate=args.stub)]
+    if args.integrator == "torch":
+        integrator = NumericalSymbIntegratorPA(
+            total_degree=args.total_degree,
+            variable_map=args.variable_map,
+        )
+        integrator.set_device(torch.device("cuda:1"))
+        return [integrator]
     elif args.integrator == "volesti":
         seeds = list(range(args.seed, args.seed + args.n_seeds))
         return [VolestiIntegrator(n_threads=args.n_threads, stub_integrate=args.stub,
@@ -51,6 +66,12 @@ def compute_wmi(args, domain, support, weight):
         weight = Real(1)
 
     real_vars = {v: b for v, b in domain.items() if v.symbol_type().is_real_type()}
+    variable_map = {str(v.symbol_name()): i for i, v in enumerate(real_vars.keys())}
+    args.variable_map = variable_map
+    if "mlc" in args.input:
+        args.total_degree = 1
+    else:
+        raise Exception("Total degree not defined for this dataset")
     bool_vars = {v for v in domain if v.symbol_type().is_bool_type()}
     if args.mode in WMI.MODES:
         integrators = get_integrators(args)
