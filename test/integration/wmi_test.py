@@ -4,6 +4,7 @@ from pysmt.typing import BOOL, REAL
 
 from wmipa import WMI
 from wmipa.integration import LatteIntegrator, VolestiIntegrator
+from wmipa.integration.torch.wmipa.numerical_symb_integrator_pa import NumericalSymbIntegratorPA
 
 a = Symbol("A", BOOL)
 b = Symbol("B", BOOL)
@@ -395,3 +396,36 @@ def test_batch_of_query_multiple_integrators():
         assert np.allclose(result[0], ans)
         # volesti is approximate
         assert np.allclose(result[1:], ans, rtol=epsilon)
+
+
+def test_batch_of_query_torch():
+    chi = And(GE(x, Real(0)), LE(x, Real(2)))
+
+    phi1 = LE(x, Real(1))
+    phi2 = GE(x, Real(1))
+
+    w = x
+
+    queries = np.array([phi1, phi2])
+    ans = np.array([[0.5, 1.5],])
+    epsilon = 0.1
+
+    variable_map = {"x": 0}
+
+    wmi = WMI(chi, w, integrator=[NumericalSymbIntegratorPA(
+        total_degree=1, variable_map=variable_map
+    ),
+                                    # VolestiIntegrator(seed=420, error=epsilon),
+                                    # VolestiIntegrator(seed=69, error=epsilon),
+                                    ])
+    for mode in [WMI.MODE_BC, WMI.MODE_ALLSMT, WMI.MODE_PA, WMI.MODE_SA_PA, WMI.MODE_SAE4WMI]:
+        result, n_int = wmi.computeWMI_batch(queries, mode=mode)
+        assert isinstance(n_int, list) and all(isinstance(n, np.ndarray) for n in n_int)
+        assert isinstance(result, list) and all(isinstance(n, np.ndarray) for n in result)
+        n_int = np.array(n_int)
+        result = np.array(result)
+        assert n_int.shape == (2, 1)
+        assert result.shape == (2, 1)
+        result = result.transpose()
+        # torch is exact
+        assert np.allclose(result[0], ans)

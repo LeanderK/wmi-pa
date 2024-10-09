@@ -70,8 +70,11 @@ class LatteInstaller(Installer):
         bin_path = os.path.abspath(os.path.join(self.install_path, self.get_dir()))
         if force and os.path.exists(bin_path):
             safe_cmd(f"rm -rf {bin_path}")
+        # safe_cmd(f'./configure GXX="g++ -std=c++11" CXX="g++ -std=c++11" '
+        #          f'--prefix={bin_path} && make && make install')
         safe_cmd(f'./configure GXX="g++ -std=c++11" CXX="g++ -std=c++11" '
-                 f'--prefix={bin_path} && make && make install')
+            f'CPPFLAGS="-I$HOME/.local/include" LDFLAGS="-L$HOME/.local/lib" '
+            f'--prefix={bin_path} && make && make install')
 
     def _dirname(self):
         return remove_suffix(os.path.basename(self.filename), ".tar.gz")

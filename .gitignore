@@ -381,3 +381,4 @@ tags
 
 experiments/**/*.json
 experiments/**/table.tex
+.vscode/settings.json

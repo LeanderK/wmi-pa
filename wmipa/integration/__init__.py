@@ -1,5 +1,13 @@
 from shutil import which
 
+import os
+
+# TODO: Hack!
+# export PATH=/afs/inf.ed.ac.uk/user/s26/s2626206/.wmipa/latte/bin:$PATH
+os.environ['PATH'] = '/afs/inf.ed.ac.uk/user/s26/s2626206/.wmipa/latte/bin:' + os.environ['PATH']
+# export PATH=/afs/inf.ed.ac.uk/user/s26/s2626206/.wmipa/approximate-integration/bin:$PATH
+os.environ['PATH'] = '/afs/inf.ed.ac.uk/user/s26/s2626206/.wmipa/approximate-integration/bin:' + os.environ['PATH']
+
 
 def _is_latte_installed():
     return which("integrate") is not None

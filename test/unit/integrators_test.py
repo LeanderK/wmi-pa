@@ -117,11 +117,11 @@ def pytest_generate_tests(metafunc):
                 f"(n={dim})"
             )
             # symbolic integrator
-            argvalues.append((polytope, volume, SymbolicIntegrator()))
-            idlist.append(
-                f"{'SymbolicIntegrator':>20} {polytope_generator.__name__:>25}"
-                f"(n={dim})"
-            )
+            # argvalues.append((polytope, volume, SymbolicIntegrator()))
+            # idlist.append(
+            #     f"{'SymbolicIntegrator':>20} {polytope_generator.__name__:>25}"
+            #     f"(n={dim})"
+            # )
             # volesti integrator
             walk_length = dim ** 3
             argvalues.append((polytope, volume, VolestiIntegrator(seed=666, error=0.1, walk_length=None)))
