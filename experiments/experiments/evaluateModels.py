@@ -62,6 +62,10 @@ def run_wmi_with_timeout(args, domain, support, weight):
     return run_fn_with_timeout(compute_wmi, args.timeout, args, domain, support, weight)
 
 
+def run_wmi_without_timeout(args, domain, support, weight):
+    return compute_wmi(args, domain, support, weight)
+
+
 def parse_args():
     modes = WMI.MODES + ["XADD", "XSDD", "FXSDD", "Rejection"]
 
@@ -113,6 +117,7 @@ def parse_args():
 \t{latte_parser.format_usage()}
 \t{symbolic_parser.format_usage()}
 \t{volesti_parser.format_usage()}
+\t{torch_parser.format_usage()}
 """)
 
     return parser.parse_args()
@@ -120,6 +125,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if args.integrator == "torch":
+        import torch.multiprocessing as mp
+        mp.set_start_method('forkserver')
     output_suffix = args.filename
     check_path_exists(args.input)
     check_path_exists(args.output)
@@ -140,7 +148,10 @@ def main():
     for i, (filename, query_n, domain, support, weight) in enumerate(problems_from_densities(files)):
         try:
             time_init = time.time()
-            results = run_wmi_with_timeout(args, domain, support, weight)
+            if args.integrator == "torch":
+                results = run_wmi_without_timeout(args, domain, support, weight)
+            else:
+                results = run_wmi_with_timeout(args, domain, support, weight)
             time_total = time.time() - time_init
         except TimeoutError:
             results = [WMIResult(wmi_id=wmi_id, value=None, n_integrations=None, parallel_integration_time=0,

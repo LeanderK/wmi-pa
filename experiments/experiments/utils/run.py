@@ -20,6 +20,7 @@ from wmipa.integration.torch.wmipa.numerical_symb_integrator_pa import Numerical
 from wmipa.utils import is_pow
 
 import torch
+import torch.multiprocessing as mp
 
 WMIResult = namedtuple("WMIResult", ["wmi_id",
                                      "value",
@@ -60,8 +61,14 @@ def get_integrators(args):
         integrator = NumericalSymbIntegratorPA(
             total_degree=args.total_degree,
             variable_map=args.variable_map,
+            batch_size=1024,
+            n_workers=args.n_threads,
         )
-        integrator.set_device(torch.device("cuda:1"))
+        # TODO: hack
+        if "mlc" in args.input:
+            integrator.set_device(torch.device("cuda:1"))
+        else:
+            integrator.set_device(torch.device("cuda:0"))
         return [integrator]
     elif args.integrator == "volesti":
         seeds = list(range(args.seed, args.seed + args.n_seeds))
@@ -152,16 +159,31 @@ def compute_wmi(args, domain, support, weight):
 
     return res
 
+def _wrapper(q, fn, *args, **kwargs):
+    _res = fn(*args, **kwargs)
+    q.put(_res)
+
 
 def run_fn_with_timeout(fn, timeout, *args, **kwargs):
     """Run compute_wmi with a timeout. If the computation exceeds the timeout, a TimeoutError is raised."""
-    q = Queue()
+    is_torch = args[0].integrator == "torch"
+    if is_torch:
+        q = mp.Queue()
+    else:
+        q = Queue()
 
-    def _wrapper(*args, **kwargs):
-        _res = fn(*args, **kwargs)
-        q.put(_res)
+    # def _wrapper(*args, **kwargs):
+    #     _res = fn(*args, **kwargs)
+    #     q.put(_res)
 
-    timed_proc = Process(target=_wrapper, args=args, kwargs=kwargs)
+    # if args[0].integrator == "torch":
+    #     timed_proc = mp.Process(target=_wrapper, args=args, kwargs=kwargs, daemon=True)
+    # else:
+    #     timed_proc = Process(target=_wrapper, args=args, kwargs=kwargs)
+    if args[0].integrator == "torch":
+        timed_proc = mp.Process(target=_wrapper, args=(q, fn) + args, kwargs=kwargs, daemon=True)
+    else:
+        timed_proc = Process(target=_wrapper, args=(q, fn) + args, kwargs=kwargs)
     timed_proc.start()
     timed_proc.join(timeout)
     if timed_proc.is_alive():

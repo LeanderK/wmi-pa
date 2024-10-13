@@ -6,12 +6,11 @@ def create_tensors_from_polynomial(
     poly: Polynomial, variable_map: dict[str, int], dtype: torch.dtype
 ) -> tuple[torch.Tensor, torch.Tensor]:
     # I think we should really prepare it beforehand instead of building the same thing over and over again!!!
-    variables = poly.variables
     monomials: list[Monomial] = poly.monomials
     monomial_size = len(monomials)
 
     coeffs = torch.zeros(monomial_size, dtype=dtype)
-    exponents = torch.zeros(monomial_size, len(variables), dtype=torch.int64)
+    exponents = torch.zeros(monomial_size, len(variable_map), dtype=torch.int64)
 
     for i, monomial in enumerate(monomials):
         coeffs[i] = float(monomial.coefficient)

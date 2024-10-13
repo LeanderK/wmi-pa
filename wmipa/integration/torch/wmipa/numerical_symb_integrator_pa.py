@@ -1,6 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
 from typing import Type
 import torch
+import time
 from wmipa.integration.torch.wmipa.drop_in_polynomial import (
     calc_single_polynomial,
     create_tensors_from_polynomial,
@@ -25,6 +27,7 @@ class NumericalSymbIntegratorPA(Integrator):
         with_sorting=False,
         batch_size=None,
         monomials_lower_precision=True,
+        n_workers=7,
     ):
         self.total_degree = total_degree
         self.variable_map = variable_map
@@ -36,6 +39,8 @@ class NumericalSymbIntegratorPA(Integrator):
         self.with_sorting = with_sorting
         self.batch_size = batch_size
         self.monomials_lower_precision = monomials_lower_precision
+        self.sequential_integration_time = 0.0
+        self.n_workers = n_workers
         super().__init__()
 
     def prepare_grundmann_moeller(self):
@@ -136,12 +141,51 @@ class NumericalSymbIntegratorPA(Integrator):
                 bounds.append(atom)
 
         return self._make_problem(weight, bounds, aliases)
-
+    
     def integrate_batch(self, problems, *args, **kwargs):  # type: ignore
+        start_time = time.time()
         results = []
-        for index, (atom_assignments, weight, aliases, cond_assignments) in enumerate(
+        import tqdm
+
+        def convert_to_problem_wrapper(problem):
+            atom_assignments, weight, aliases, cond_assignments = problem
+            return self._convert_to_problem(atom_assignments, weight, aliases)
+
+        with ThreadPoolExecutor(max_workers=self.n_workers) as executor:
+            future_to_problem = {executor.submit(convert_to_problem_wrapper, problem): problem for problem in problems}
+            for future in tqdm.tqdm(as_completed(future_to_problem), total=len(problems), disable=True):
+                problem = future_to_problem[future]
+                try:
+                    simplices, coeffs, exponents = future.result()
+                    if simplices.shape[0] == 0:
+                        # this won't work if results is empty but this will hopefully never happen :)
+                        results.append(torch.zeros_like(results[-1]))
+                        continue
+                    simplices = simplices.to(self.device)
+                    coeffs = coeffs.to(self.device)
+                    exponents = exponents.to(self.device)
+                    integral_simplices = torch.vmap(
+                        lambda s: self.integrate_simplex(s, coeffs, exponents)
+                    )(simplices)
+                    integral_polytope = (
+                        torch.sum(integral_simplices, dim=0).to("cpu").unsqueeze(-1)
+                    )
+                    results.append(integral_polytope.item())
+                except Exception as exc:
+                    print(f'Problem {problem} generated an exception: {exc}')
+            
+        self.sequential_integration_time = time.time() - start_time
+        # results = torch.concatenate(results, dim=-1)
+        return results, 0
+
+    def integrate_batch_sequential(self, problems, *args, **kwargs):  # type: ignore
+        start_time = time.time()
+        results = []
+        # print(f"N problems: {len(problems)}")
+        import tqdm
+        for index, (atom_assignments, weight, aliases, cond_assignments) in tqdm.tqdm(enumerate(
             problems
-        ):
+        ), total=len(problems)):
             simplices, coeffs, exponents = self._convert_to_problem(
                 atom_assignments, weight, aliases
             )
@@ -159,6 +203,8 @@ class NumericalSymbIntegratorPA(Integrator):
                 torch.sum(integral_simplices, dim=0).to("cpu").unsqueeze(-1)
             )
             results.append(integral_polytope.item())
+        
+        self.sequential_integration_time = time.time() - start_time
         # results = torch.concatenate(results, dim=-1)
         return results, 0
 
@@ -171,3 +217,9 @@ class NumericalSymbIntegratorPA(Integrator):
             "total_degree": self.total_degree,
             "variable_map": self.variable_map,
         }
+
+    def get_parallel_integration_time(self):
+        return self.sequential_integration_time
+
+    def get_sequential_integration_time(self):
+        return self.sequential_integration_time
