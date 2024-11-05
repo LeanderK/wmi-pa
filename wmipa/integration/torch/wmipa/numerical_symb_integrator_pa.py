@@ -216,6 +216,9 @@ class NumericalSymbIntegratorPA(Integrator):
             "name": "torch",
             "total_degree": self.total_degree,
             "variable_map": self.variable_map,
+            "monomials_lower_precision": self.monomials_lower_precision,
+            "sum_seperately": self.sum_seperately,
+            "with_sorting": self.with_sorting,
         }
 
     def get_parallel_integration_time(self):

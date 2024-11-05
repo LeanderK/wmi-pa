@@ -58,17 +58,28 @@ def get_integrators(args):
     if args.integrator == "latte":
         return [LatteIntegrator(n_threads=args.n_threads, stub_integrate=args.stub)]
     if args.integrator == "torch":
+        import time
+        time_start = time.time()
+        if args.monomials_use_float64:
+            batch_size = 1024
+        else:
+            batch_size = 1024
         integrator = NumericalSymbIntegratorPA(
             total_degree=args.total_degree,
             variable_map=args.variable_map,
-            batch_size=1024,
+            batch_size=batch_size,
             n_workers=args.n_threads,
+            monomials_lower_precision=not args.monomials_use_float64,
+            sum_seperately=args.sum_seperately,
+            with_sorting=args.with_sorting,
         )
         # TODO: hack
         if "mlc" in args.input:
             integrator.set_device(torch.device("cuda:1"))
         else:
             integrator.set_device(torch.device("cuda:0"))
+        time_end = time.time()
+        print(f"Time to create integrator: {time_end - time_start}\n")
         return [integrator]
     elif args.integrator == "volesti":
         seeds = list(range(args.seed, args.seed + args.n_seeds))

@@ -4,6 +4,8 @@ import os
 import time
 from os import path
 
+from line_profiler import profile
+
 from utils.io import check_path_exists, check_path_not_exists, problems_from_densities, write_result, Formatter
 from utils.run import get_integrators, get_wmi_id, compute_wmi, run_fn_with_timeout, WMIResult
 from wmipa import WMI
@@ -94,7 +96,6 @@ def parse_args():
     latte_parser = integration_parsers.add_parser("latte", formatter_class=Formatter)
     symbolic_parser = integration_parsers.add_parser("symbolic", formatter_class=Formatter)
     volesti_parser = integration_parsers.add_parser("volesti", formatter_class=Formatter)
-    torch_parser = integration_parsers.add_parser("torch", formatter_class=Formatter)
     volesti_parser.add_argument("-e", "--error", default=0.1, type=float,
                                 help="Relative error for the volume computation [in (0, 1)]")
     volesti_parser.add_argument("--algorithm", choices=VolestiIntegrator.ALGORITHMS,
@@ -111,6 +112,10 @@ def parse_args():
     volesti_parser.add_argument("--n-seeds", type=int, default=1,
                                 help="Number of seeds to use. A list of VolEsti integrator will be used "
                                      "with seeds [seed, seed + 1, ..., seed + n_seeds - 1]")
+    torch_parser = integration_parsers.add_parser("torch", formatter_class=Formatter)
+    torch_parser.add_argument("--monomials_use_float64", action="store_true", help="Use float64 instead of float32 for monomials")
+    torch_parser.add_argument("--sum_seperately", action="store_true", help="Sum the integrals of the simplices separately")
+    torch_parser.add_argument("--with_sorting", action="store_true", help="Sort the simplices before integration")
     print()
     parser.epilog = (
         f"""See more options for each integrator with:
@@ -123,6 +128,7 @@ def parse_args():
     return parser.parse_args()
 
 
+@profile
 def main():
     args = parse_args()
     if args.integrator == "torch":

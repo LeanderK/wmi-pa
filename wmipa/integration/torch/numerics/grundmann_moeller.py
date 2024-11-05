@@ -117,7 +117,10 @@ def prepare_grundmann_moeller(s, n, non_increasing=False):
     return coefficients, points
 
 
-def sum_weighted(values, sum_seperately=True, with_sorting=True) -> torch.Tensor:
+@torch.jit.script
+def sum_weighted(
+    values: torch.Tensor, sum_seperately: bool = True, with_sorting: bool = True
+) -> torch.Tensor:
     if sum_seperately:
         w_positive = values.clone().clamp(min=0)
         w_negative = values.clone().clamp(max=0)
