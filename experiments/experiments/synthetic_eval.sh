@@ -10,10 +10,16 @@ do
 	echo Evaluating $dir
 	#for mode in XSDD XADD FXSDD "PA latte" "SAPA latte" "SAE4WMI latte" "SAE4WMI symbolic"
 	# for mode in "SAE4WMI latte" "SAE4WMI torch"
-	for mode in "SAE4WMI torch" "SAE4WMI latte" "SAPA torch" "SAPA latte"
+	for mode in "SAE4WMI latte" "SAPA latte"
 	do
 		echo Mode $mode
 		python3 evaluateModels.py $dir -o $res_dir -m $mode 
+	done
+
+	for mode in "SAE4WMI torch" "SAPA torch"
+	do
+		echo Mode $mode
+		python3 evaluateModels.py $dir -o $res_dir -m $mode --monomials_use_float64 --sum_seperately --with_sorting
 	done
 
   error=0.1
