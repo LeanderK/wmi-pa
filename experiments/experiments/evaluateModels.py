@@ -4,7 +4,7 @@ import os
 import time
 from os import path
 
-from line_profiler import profile
+# from line_profiler import profile
 
 from utils.io import check_path_exists, check_path_not_exists, problems_from_densities, write_result, Formatter
 from utils.run import get_integrators, get_wmi_id, compute_wmi, run_fn_with_timeout, WMIResult
