@@ -8,15 +8,14 @@ do
 	res_dir=$(sed "s+data+results+g" <<< $dir)
 	mkdir -p $res_dir
 	echo Evaluating $dir
-	#for mode in XSDD XADD FXSDD "PA latte" "SAPA latte" "SAE4WMI latte" "SAE4WMI symbolic"
-	# for mode in "SAE4WMI latte" "SAE4WMI torch"
-	for mode in "SAE4WMI latte" "SAPA latte"
+
+	for mode in "SAE4WMI latte"
 	do
 		echo Mode $mode
 		python3 evaluateModels.py $dir -o $res_dir -m $mode 
 	done
 
-	for mode in "SAE4WMI torch" "SAPA torch"
+	for mode in "SAE4WMI torch"
 	do
 		echo Mode $mode
 		python3 evaluateModels.py $dir -o $res_dir -m $mode --monomials_use_float64 --sum_seperately --with_sorting
