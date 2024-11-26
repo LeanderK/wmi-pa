@@ -7,6 +7,7 @@ import pandas as pd
 
 from wmipa import WMI
 from wmipa.integration import LatteIntegrator, VolestiIntegrator, SymbolicIntegrator
+from wmipa.integration.torch.wmipa.numerical_symb_integrator_pa import NumericalSymbIntegratorPA
 from .io import check_path_exists
 from .run import get_wmi_id
 
@@ -31,28 +32,18 @@ COLORS = ["#2f4f4f", "#7f0000", "#006400", "#4b0082", "#ff0000", "#00ff00", "#1e
 ModeIdInfo = namedtuple("ModeIdInfo", ["color", "label"])
 # Mode id sorted by order of appearance in the legend
 MODE_IDS = OrderedDict([
-    (get_mode_id("XADD", None), ModeIdInfo(COLORS[0], "XADD")),
-    (get_mode_id("XSDD", None), ModeIdInfo(COLORS[1], "XSDD")),
-    (get_mode_id("FXSDD", None), ModeIdInfo(COLORS[2], "FXSDD")),
-    (get_mode_id(WMI.MODE_PA, LatteIntegrator()), ModeIdInfo(COLORS[3], "WMI-PA")),
-    (get_mode_id(WMI.MODE_SA_PA, LatteIntegrator()), ModeIdInfo(COLORS[4], "SA-WMI-PA")),
-    (get_mode_id(WMI.MODE_SAE4WMI, LatteIntegrator()), ModeIdInfo(COLORS[5], "SAE4WMI")),
-    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=100)),
-     ModeIdInfo(COLORS[6], "SAE4WMI(VolEsti, error=0.1, N=100)")),
-    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=1000)),
-     ModeIdInfo(COLORS[7], "SAE4WMI(VolEsti, error=0.1, N=1000)")),
-    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=10000)),
-     ModeIdInfo(COLORS[8], "SAE4WMI(VolEsti, error=0.1, N=10000)")),
-    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=100000)),
-     ModeIdInfo(COLORS[11], "SAE4WMI(VolEsti, error=0.1, N=100000)")),
-    # (get_mode_id(WMI.MODE_SA_PA_SK, VolestiIntegrator(error=0.01, N=100000)),
-    #  ModeIdInfo(COLORS[12], "SAE4WMI(VolEsti, error=0.01, N=100000)")),
-    # (get_mode_id(WMI.MODE_SA_PA_SK, VolestiIntegrator(error=0.01, N=1000000)),
-    #  ModeIdInfo(COLORS[13], "SAE4WMI(VolEsti, error=0.01, N=1000000)")),
-    # (get_mode_id(WMI.MODE_SA_PA_SK, VolestiIntegrator(error=0.005, N=1000)),
-    #  ModeIdInfo(COLORS[9], "SAE4WMI(VolEsti, error=0.005)")),
-    (get_mode_id(WMI.MODE_SAE4WMI, SymbolicIntegrator()),
-     ModeIdInfo(COLORS[10], "SAE4WMI(Symbolic)")),
+    #(get_mode_id("XADD", None), ModeIdInfo(COLORS[0], "XADD")),
+    #(get_mode_id("XSDD", None), ModeIdInfo(COLORS[1], "XSDD")),
+    #(get_mode_id("FXSDD", None), ModeIdInfo(COLORS[2], "FXSDD")),
+    #(get_mode_id(WMI.MODE_PA, LatteIntegrator()), ModeIdInfo(COLORS[3], "WMI-PA")),
+    #(get_mode_id(WMI.MODE_SA_PA, LatteIntegrator()), ModeIdInfo(COLORS[4], "SA-WMI-PA")),
+    (get_mode_id(WMI.MODE_SAE4WMI, LatteIntegrator()), ModeIdInfo(COLORS[0], "SAE4WMI(LattE)")),
+    ("SAE4WMI_torch", ModeIdInfo(COLORS[1], "SAE4WMI(GASP!)")),
+    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=100)), ModeIdInfo(COLORS[6], "SAE4WMI(VolEsti, error=0.1, N=100)")),
+    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=1000)), ModeIdInfo(COLORS[7], "SAE4WMI(VolEsti, error=0.1, N=1000)")),
+    (get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=10000)), ModeIdInfo(COLORS[8], "SAE4WMI(VolEsti, error=0.1, N=10000)")),
+    #(get_mode_id(WMI.MODE_SAE4WMI, VolestiIntegrator(error=0.1, N=100000)),  ModeIdInfo(COLORS[11], "SAE4WMI(VolEsti, error=0.1, N=100000)")),
+    #(get_mode_id(WMI.MODE_SAE4WMI, SymbolicIntegrator()), ModeIdInfo(COLORS[10], "SAE4WMI(Symbolic)")),
 ])
 
 
@@ -137,6 +128,15 @@ def check_values(data: pd.DataFrame, ref="SAE4WMI_latte"):
         .unstack()
     )
 
+    print("==================================================")
+    print(data["count"] == 1)
+    print()
+
+    print("==================================================")
+    print(data)
+    print()
+    exit()
+        
     # ensure we have no duplicated output
     assert (data["count"] == 1).all().all(), "Some output are duplicated: {}".format(
         data[data["count"] != 1]["count"]

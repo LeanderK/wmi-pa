@@ -17,13 +17,13 @@ MIN_BOOLS = 3
 MAX_BOOLS = 3
 MIN_REALS = 3
 MAX_REALS = 3
-MIN_DEPTH = 4
+MIN_DEPTH = 2
 MAX_DEPTH = 6
 MIN_EXPONENT = 2
 MAX_EXPONENT = 2
 
 def custom_generate_benchmark(output, n_reals, n_bools, depth, n_models, max_exponent, seedn=None):
-    output_dir = "pa_r{}_b{}_d{}_m{}_e{}_s{}".format(n_reals, n_bools, depth, n_models, max_exponent, seedn)
+    output_dir = "r{}_b{}_d{}_m{}_e{}_s{}".format(n_reals, n_bools, depth, n_models, max_exponent, seedn)
     output_dir = path.join(output, output_dir)
 
     check_input_output(output, output_dir)

@@ -81,7 +81,7 @@ def group_data(data: pd.DataFrame, cactus, timeout):
         )
     )
 
-    modes = data.columns.get_level_values(0).unique()
+    modes = data.columns.get_level_values(0).unique()    
     mode_ids = [mode for mode in MODE_IDS if mode in modes]
 
     if cactus:
