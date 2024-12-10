@@ -11,7 +11,7 @@ do
 	echo Evaluating $dir
 
 	echo Mode SAE4WMI latte
-	python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI latte --n-threads $NTHREADS
+	python3 evaluateModels.py $dir -o $res_dir --n_threads $NTHREADS -m SAE4WMI latte
 
 	echo Mode SAE4WMI torch
 	python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI torch --monomials_use_float64 --sum_seperately --with_sorting
