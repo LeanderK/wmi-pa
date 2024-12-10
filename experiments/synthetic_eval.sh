@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NTHREADS=20
+LATTE_THREADS=20
 SYN_DIR=synthetic_exp
 DATA_DIR=$SYN_DIR/data
 
@@ -11,7 +11,7 @@ do
 	echo Evaluating $dir
 
 	echo Mode SAE4WMI latte
-	python3 evaluateModels.py $dir -o $res_dir --n_threads $NTHREADS -m SAE4WMI latte
+	python3 evaluateModels.py  $dir -o $res_dir  --n-threads $LATTE_THREADS -m SAE4WMI latte
 
 	echo Mode SAE4WMI torch
 	python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI torch --monomials_use_float64 --sum_seperately --with_sorting
