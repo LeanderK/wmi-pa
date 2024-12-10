@@ -4,10 +4,10 @@ from queue import Empty as EmptyQueueError
 
 import psutil
 from pysmt.shortcuts import Real, Bool
-from pywmi import Domain as PywmiDomain, PyXaddEngine, XsddEngine, PyXaddAlgebra, FactorizedXsddEngine as FXSDD, \
-    RejectionEngine
-from pywmi.engines.algebraic_backend import SympyAlgebra
-from pywmi.engines.xsdd.vtrees.vtree import balanced
+#from pywmi import Domain as PywmiDomain, PyXaddEngine, XsddEngine, PyXaddAlgebra, FactorizedXsddEngine as FXSDD, \
+#    RejectionEngine
+#from pywmi.engines.algebraic_backend import SympyAlgebra
+#from pywmi.engines.xsdd.vtrees.vtree import balanced
 
 # add to imports
 import os
