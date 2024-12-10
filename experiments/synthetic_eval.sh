@@ -9,22 +9,17 @@ do
 	mkdir -p $res_dir
 	echo Evaluating $dir
 
-	for mode in "SAE4WMI latte"
-	do
-		echo Mode $mode
-		python3 evaluateModels.py $dir -o $res_dir -m $mode 
-	done
+	echo Mode SAE4WMI latte
+	python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI latte
 
-	for mode in "SAE4WMI torch"
-	do
-		echo Mode $mode
-		python3 evaluateModels.py $dir -o $res_dir -m $mode --monomials_use_float64 --sum_seperately --with_sorting
-	done
+	echo Mode SAE4WMI torch
+	python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI torch --monomials_use_float64 --sum_seperately --with_sorting
 
-  error=0.1
+
+	error=0.1
 	for N in 100 1000 10000
 	do
-    echo "Mode SAE4WMI volesti, N $N, 5 seeds"
-    python3 evaluateModels.py "$dir" -o "$res_dir" -m SAE4WMI volesti -e $error -N $N --seed 666 --n-seeds 5
-  done
+	    echo "Mode SAE4WMI volesti, N $N, 5 seeds"
+	    python3 evaluateModels.py $dir -o $res_dir -m SAE4WMI volesti -e $error -N $N --seed 666 --n-seeds 5
+	done
 done

@@ -135,7 +135,7 @@ def check_values(data: pd.DataFrame, ref="SAE4WMI_latte"):
     print("==================================================")
     print(data)
     print()
-    exit()
+
         
     # ensure we have no duplicated output
     assert (data["count"] == 1).all().all(), "Some output are duplicated: {}".format(

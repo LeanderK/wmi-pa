@@ -10,17 +10,17 @@ from pysmt.shortcuts import BOOL, LT, REAL, And, Bool, Ite, Not, Or, Plus, Pow, 
 
 from wmibench.io import Density
 
-N_PROBLEMS = 5
+N_PROBLEMS = 10
 SEED = 666
 
-MIN_BOOLS = 3
-MAX_BOOLS = 3
+MIN_BOOLS = 0
+MAX_BOOLS = 0
 MIN_REALS = 3
-MAX_REALS = 3
+MAX_REALS = 5
 MIN_DEPTH = 2
 MAX_DEPTH = 6
 MIN_EXPONENT = 2
-MAX_EXPONENT = 2
+MAX_EXPONENT = 4
 
 def custom_generate_benchmark(output, n_reals, n_bools, depth, n_models, max_exponent, seedn=None):
     output_dir = "r{}_b{}_d{}_m{}_e{}_s{}".format(n_reals, n_bools, depth, n_models, max_exponent, seedn)
