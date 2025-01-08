@@ -16,6 +16,10 @@ import wmipa.integration.torch.wmipa.triangulate_inequalities as triangulate
 from pysmt.shortcuts import LE, LT
 import numpy as np
 
+# hack for the "RuntimeError: CUDA driver initialization failed." error
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 class NumericalSymbIntegratorPA(Integrator):
     def __init__(

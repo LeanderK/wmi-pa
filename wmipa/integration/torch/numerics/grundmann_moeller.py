@@ -3,6 +3,10 @@ import torch
 import math
 import numpy as np
 
+# hack for the "RuntimeError: CUDA driver initialization failed." error
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 # based on:
 # A. Grundmann, H. M. Möller,
 # "Invariant integration formulas for the n-simplex by combinatorial methods",
