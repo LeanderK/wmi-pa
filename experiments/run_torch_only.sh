@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SYN_DIR=synthetic_exp
+SYN_DIR=synthetic_exp_rest
 DATA_DIR=$SYN_DIR/data
 
 for dir in $(ls -d $DATA_DIR/*)
