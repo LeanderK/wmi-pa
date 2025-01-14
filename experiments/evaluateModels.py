@@ -130,10 +130,12 @@ def parse_args():
 
 # @profile
 def main():
+    
     args = parse_args()
     if args.integrator == "torch":
         import torch.multiprocessing as mp
         mp.set_start_method('forkserver')
+
     output_suffix = args.filename
     check_path_exists(args.input)
     check_path_exists(args.output)
@@ -164,6 +166,17 @@ def main():
                                  sequential_integration_time=0) for wmi_id in output_files.keys()]
             time_total = args.timeout
 
+        except Exception as err:
+
+            print(f"Exception while solving '{filename}' of type {type(err)}:")
+            print(err.args)
+            print(err)
+            print()
+
+            results = [WMIResult(wmi_id=wmi_id, value=None, n_integrations=None, parallel_integration_time=0,
+                                 sequential_integration_time=0) for wmi_id in output_files.keys()]
+            time_total = args.timeout            
+            
         enumeration_time = time_total - sum(result.parallel_integration_time for result in results)
 
         for result in results:
