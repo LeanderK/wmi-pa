@@ -22,6 +22,8 @@ def quantile(x, q):
         return np.nan
     return np.nanquantile(x, q)
 
+def logval(x):
+    return np.log10(x)
 
 def median(x):
     return quantile(x, 0.5)
@@ -34,6 +36,8 @@ def q25(x):
 def q75(x):
     return quantile(x, 0.75)
 
+def logval_field(field):
+    return f"log10_{field}"
 
 def median_field(field):
     return f"median_{field}"
@@ -114,7 +118,7 @@ def get_modes_for_param(data, param):
             ]
 
 
-def plot_data(outdir, data, param, xlabel, ylabel, timeout=0, frm=None, to=None, filename="", legend_pos=6, title=None):
+def plot_data(outdir, data, param, xlabel, ylabel, timeout=0, frm=None, to=None, filename="", legend_pos=6, title=None, logscale=False):
     total_problems = max(data.index) + 1
     # crop from:to if necessary
     sfx = ""
@@ -126,12 +130,17 @@ def plot_data(outdir, data, param, xlabel, ylabel, timeout=0, frm=None, to=None,
     n_problems = max(data.index) + 1
 
     plt.figure(figsize=figsize)
-    # if ylim:
-    #     plt.ylim(-ylim/25, ylim)
+
+    
     plt.xlim(-n_problems / 25, n_problems + n_problems / 25)
+    #plt.ylim(-ylim/25, ylim)
+
 
     # timeout line
     if timeout:
+        if logscale:
+            timeout = np.log10(timeout)
+
         x = list(range(n_problems))
         y = [timeout] * n_problems
         plt.plot(x, y, linestyle="dashed", linewidth=lw, label="timeout", color="r")
@@ -140,12 +149,18 @@ def plot_data(outdir, data, param, xlabel, ylabel, timeout=0, frm=None, to=None,
     modes = get_modes_for_param(data, param)
 
     for mode_id, mode in modes:
-        plt.plot(data[mode_id][median_field(param)], color=mode.color, label=mode.label, linewidth=lw, marker="x")
+
+        plot_data = data[mode_id][median_field(param)]
+
+        if logscale and param == "time":
+            plot_data = np.log10(plot_data)
+        
+        plt.plot(plot_data, color=mode.color, label=mode.label, linewidth=lw, marker="x")
         # if timeout:
         #     sup.clip(upper=timeout, inplace=True)
-        sup = data[mode_id][q75_field(param)]
-        inf = data[mode_id][q25_field(param)]
-        plt.fill_between(data.index, sup, inf, color=mode.color, alpha=0.1)
+        #sup = data[mode_id][q75_field(param)]
+        #inf = data[mode_id][q25_field(param)]
+        #plt.fill_between(data.index, sup, inf, color=mode.color, alpha=0.1)
 
     # legend
     plt.legend(loc=legend_pos, fontsize=fs)
@@ -194,6 +209,7 @@ def parse_args():
     parser.add_argument("--cactus", action="store_true", help="If true use cactus plot")
     parser.add_argument("--legend-pos", type=int, default=6, help="Legend position")
     parser.add_argument("--title", type=str, default=None, help="Title to plot")
+    parser.add_argument("--logscale", default=False, action='store_true', help="Plot time in log-scale")
     return parser.parse_args()
 
 
@@ -220,7 +236,7 @@ def main():
     title = args.title
 
     xlabel = "Problem instances"
-    ylabel_time = "Query execution time (seconds)"
+    ylabel_time = "Query execution time (" + ("log" if args.logscale else "") + "seconds)"
     ylabel_n_integrations = "Number of integrations"
     ylabel_error = "Relative error"
 
@@ -238,14 +254,14 @@ def main():
     for interval in intervals:
         frm, to = parse_interval(interval)
         plot_data(output_dir, data, "time", xlabel, ylabel_time,
-                  timeout=timeout, frm=frm, to=to, filename=filename, legend_pos=legend_pos, title=title)
+                  timeout=timeout, frm=frm, to=to, filename=filename, legend_pos=legend_pos, title=title, logscale=args.logscale)
         plot_data(output_dir, data, "n_integrations", xlabel, ylabel_n_integrations,
                   frm=frm, to=to, filename=filename, legend_pos=legend_pos, title=title)
         plot_data(output_dir, data, "error", xlabel, ylabel_error,
                   frm=frm, to=to, filename=filename, legend_pos=legend_pos, title=title)
 
     plot_data(output_dir, data, "time", xlabel, ylabel_time,
-              timeout=timeout, filename=filename, legend_pos=legend_pos, title=title)
+              timeout=timeout, filename=filename, legend_pos=legend_pos, title=title, logscale=args.logscale)
     plot_data(output_dir, data, "n_integrations", xlabel, ylabel_n_integrations,
               filename=filename, legend_pos=legend_pos, title=title)
     plot_data(output_dir, data, "error", xlabel, ylabel_error,
