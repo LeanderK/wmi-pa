@@ -113,6 +113,7 @@ if __name__ == "__main__":
         ax.plot([10 ** MIN_EXP, 10**(np.log10(TIMEOUT_VAL) - i)], [10 ** (MIN_EXP + i), TIMEOUT_VAL], linestyle="--", color=DIAGONAL_COLOR, alpha=(1 - 0.2*i))
     
     ax.scatter(xs, ys, marker=MARKER, color=COLOR, alpha=ALPHA)
+    plt.savefig("scatter.pdf", bbox_inches='tight', pad_inches=0)
     plt.show()
             
 

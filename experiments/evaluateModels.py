@@ -8,6 +8,14 @@ from os import path
 
 from utils.io import check_path_exists, check_path_not_exists, problems_from_densities, write_result, Formatter
 from utils.run import get_integrators, get_wmi_id, compute_wmi, run_fn_with_timeout, WMIResult
+
+# add parent directory to import path
+import os
+import sys
+module_path = os.path.abspath(os.path.join('.'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
 from wmipa import WMI
 from wmipa.integration.cache_integrator import CacheIntegrator
 from wmipa.integration.volesti_integrator import VolestiIntegrator
