@@ -381,5 +381,7 @@ tags
 
 experiments/**/*.json
 experiments/**/table.tex
-.vscode/settings.json
+.vscode/
 paths.sh
+experiments/latte_gasp
+latte_gasp
