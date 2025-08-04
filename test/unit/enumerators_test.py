@@ -58,7 +58,7 @@ def pytest_generate_tests(metafunc):
     metafunc.parametrize(argnames, argvalues, ids=idlist)
 
 
-def test_enumeration(enumerator_class, support, weight, enumerate_kwargs={}):
+def test_enumeration(enumerator_class, support, weight, enumerate_kwargs):
     """
     - Every truth assignment (TA) is satisfiable in conjunction with the support
     - Every TA corresponds to a leaf in the weight function
